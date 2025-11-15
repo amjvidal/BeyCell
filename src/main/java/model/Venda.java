@@ -1,4 +1,4 @@
-package main.model;
+package src.main.java.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -74,5 +74,3 @@ public class Venda implements Serializable {
         '}';
     }
     }
-
-
