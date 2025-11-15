@@ -1,0 +1,118 @@
+@startuml
+
+' ======= PACKAGES =======
+package model {
+    class Produto {
+        - id : int
+        - nome : String
+        - marca : String
+        - modelo : String
+        - preco : double
+        - estoqueAtual : int
+        - estoqueMinimo : int
+        + getId() : int
+        + getNome() : String
+        + getMarca() : String
+        + getModelo() : String
+        + getPreco() : double
+        + getEstoqueAtual() : int
+        + getEstoqueMinimo() : int
+        + setEstoqueAtual(int)
+    }
+
+    class Cliente {
+        - id : int
+        - nome : String
+        - email : String
+        - telefone : String
+        + getters/setters
+    }
+
+    class ItemVenda {
+        - produto : Produto
+        - quantidade : int
+        - subtotal : double
+        + getProduto() : Produto
+        + getQuantidade() : int
+        + getSubtotal() : double
+        + getPrecoUnitario() : double
+    }
+
+    class Venda {
+        - id : int
+        - cliente : Cliente
+        - itens : List<ItemVenda>
+        - data : LocalDateTime
+        - total : double
+        + adicionarItem(ItemVenda)
+        + calcularTotal()
+        + getters
+    }
+}
+
+package repository {
+    class GenericRepository<T> {
+        - String filePath
+        + salvar(List<T>)
+        + carregar() : List<T>
+        + inserir(T)
+        + atualizar(T)
+        + deletar(int id)
+        + listar() : List<T>
+    }
+
+    class ProdutoRepository
+    class ClienteRepository
+    class VendaRepository
+}
+
+package controller {
+    class ProdutoController {
+        - ProdutoRepository repo
+        + cadastrarProduto(Produto)
+        + atualizarProduto(Produto)
+        + removerProduto(int)
+        + listarProdutos() : List<Produto>
+    }
+
+    class ClienteController {
+        - ClienteRepository repo
+        + cadastrarCliente(Cliente)
+        + atualizarCliente(Cliente)
+        + removerCliente(int)
+        + listarClientes() : List<Cliente>
+    }
+
+    class VendaController {
+        - VendaRepository repo
+        - ProdutoRepository produtoRepo
+        + registrarVenda(Venda)
+        + listarVendas() : List<Venda>
+        + verificarEstoque(Produto)
+    }
+}
+
+package service {
+    class Fatura {
+        + gerarFatura(Venda)
+    }
+}
+
+' ======= RELACIONAMENTOS =======
+
+Produto "1" <-- "1..*" ItemVenda : produto
+Venda "1" --> "1..*" ItemVenda : contém
+Venda "1" --> "1" Cliente
+
+ProdutoRepository --|> GenericRepository
+ClienteRepository --|> GenericRepository
+VendaRepository --|> GenericRepository
+
+ProdutoController --> ProdutoRepository
+ClienteController --> ClienteRepository
+VendaController --> VendaRepository
+VendaController --> ProdutoRepository
+
+Fatura --> Venda
+
+@enduml
