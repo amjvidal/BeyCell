@@ -1,0 +1,11 @@
+=== FATURA BEYCELL ===
+Venda: #2
+Data: 2025-12-02T23:17:15.467704600
+Cliente: Lucas LULU da Silva
+CPF: 99999999999
+----------------------
+ITENS:
+- Samsung Galaxy S24 : R$ 2500.0
+- Samsung Galaxy S24 : R$ 2500.0
+----------------------
+TOTAL: R$ 5000.0
