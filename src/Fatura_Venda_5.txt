@@ -1,0 +1,10 @@
+=== FATURA BEYCELL ===
+Venda: #5
+Data: 04/12/2025 14:57:07
+Cliente: Antonio Mario Jesus Vidal Leite
+CPF: 14384276460
+----------------------
+ITENS:
+- Samsung Galaxy S24 : R$ 2500.0
+----------------------
+TOTAL: R$ 2500.0

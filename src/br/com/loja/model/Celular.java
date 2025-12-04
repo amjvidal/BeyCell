@@ -3,23 +3,22 @@ package br.com.loja.model;
 import java.io.Serializable;
 
 public class Celular implements Serializable {
-    // ID para serialização (boa prática)
+    // ID de Serialização
     private static final long serialVersionUID = 1L;
-
-    private int id; // Identificador único
+    //Atributos
+    private int id;
     private String marca;
     private String modelo;
     private double preco;
-    private int ram; // Em GB
-    private int armazenamento; // Em GB
+    private int ram; // em GB
+    private int armazenamento; // em GB
     private String cor;
     private int quantidadeEstoque;
-    private int estoqueMinimo; // Para o alerta de estoque baixo
+    private int estoqueMinimo; // Alerta de estoque
 
-    // Construtor Vazio
     public Celular() {}
 
-    // Construtor Completo
+    // Construtor
     public Celular(int id, String marca, String modelo, double preco, int ram, int armazenamento, String cor, int quantidadeEstoque, int estoqueMinimo) {
         this.id = id;
         this.marca = marca;
@@ -32,7 +31,7 @@ public class Celular implements Serializable {
         this.estoqueMinimo = estoqueMinimo;
     }
 
-    // Getters e Setters
+    //getters e setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -60,7 +59,7 @@ public class Celular implements Serializable {
     public int getEstoqueMinimo() { return estoqueMinimo; }
     public void setEstoqueMinimo(int estoqueMinimo) { this.estoqueMinimo = estoqueMinimo; }
 
-    // O toString ajuda a mostrar o nome bonito nas listas da interface gráfica
+    // Formatar a saida dos atributos para ficar bonito na view
     @Override
     public String toString() {
         return marca + " " + modelo + " (" + armazenamento + "GB) - R$ " + preco;

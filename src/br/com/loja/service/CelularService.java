@@ -17,7 +17,7 @@ public class CelularService {
         carregarDados();
     }
 
-    // Carrega do arquivo ao iniciar
+    // carrega do arquivo ao iniciar
     private void carregarDados() {
         List<Object> dadosCarregados = persistencia.carregarArquivo(ARQUIVO);
         for (Object obj : dadosCarregados) {
@@ -25,12 +25,12 @@ public class CelularService {
         }
     }
 
-    // Salva no arquivo
+    // salva no arquivo
     public void salvarDados() {
         persistencia.salvarArquivo(celulares, ARQUIVO);
     }
 
-    // Cadastrar novo celular
+    //cadastra novo celular
     public void cadastrar(Celular celular) {
         // Gera um ID simples (pega o ultimo ID + 1)
         int novoId = celulares.isEmpty() ? 1 : celulares.get(celulares.size() - 1).getId() + 1;
@@ -39,12 +39,12 @@ public class CelularService {
         salvarDados();
     }
 
-    // Listar todos
+    //lista todos os celulares
     public List<Celular> listarTodos() {
         return celulares;
     }
 
-    // Adicionar estoque (Requisito do botão simples)
+    //adicionar unidade ao estoque
     public void adicionarEstoque(int idCelular, int quantidade) {
         for (Celular c : celulares) {
             if (c.getId() == idCelular) {
@@ -55,7 +55,7 @@ public class CelularService {
         }
     }
 
-    // Diminuir estoque (usado na venda)
+    //diminuir no estoque quando realiza venda
     public void baixarEstoque(int idCelular) {
         for (Celular c : celulares) {
             if (c.getId() == idCelular) {
@@ -66,7 +66,7 @@ public class CelularService {
         }
     }
     
-    // Relatório: Produtos com estoque crítico
+    // usa no relatorio pra avisar se estoque baixo
     public List<Celular> buscarEstoqueCritico() {
         List<Celular> criticos = new ArrayList<>();
         for (Celular c : celulares) {
@@ -75,5 +75,21 @@ public class CelularService {
             }
         }
         return criticos;
+    }
+
+    // remover o celular na aba de produto
+    public void remover(int id) {
+        Celular celularParaRemover = null;
+        for (Celular c : celulares) {
+            if (c.getId() == id) {
+                celularParaRemover = c;
+                break;
+            }
+        }
+        
+        if (celularParaRemover != null) {
+            celulares.remove(celularParaRemover);
+            salvarDados(); // salva no arquivo
+        }
     }
 }

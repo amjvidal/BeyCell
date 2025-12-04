@@ -17,6 +17,7 @@ public class ClienteService {
         carregarDados();
     }
 
+    // carrega dados do arquivo
     private void carregarDados() {
         List<Object> dados = persistencia.carregarArquivo(ARQUIVO);
         for (Object obj : dados) {
@@ -24,19 +25,23 @@ public class ClienteService {
         }
     }
 
+    //salva os dados
     public void salvarDados() {
         persistencia.salvarArquivo(clientes, ARQUIVO);
     }
 
+    //cadastra novo cliente
     public void cadastrar(Cliente cliente) {
         clientes.add(cliente);
         salvarDados();
     }
 
+    //lista os cliente 
     public List<Cliente> listarTodos() {
         return clientes;
     }
 
+    // metodo de busca pelo cpf
     public Cliente buscarPorCpf(String cpf) {
         for (Cliente c : clientes) {
             if (c.getCpf().equals(cpf)) {
@@ -44,5 +49,21 @@ public class ClienteService {
             }
         }
         return null;
+    }
+
+    // remover cliente na aba cliente
+    public void remover(String cpf) {
+        Cliente clienteParaRemover = null;
+        for (Cliente c : clientes) {
+            if (c.getCpf().equals(cpf)) {
+                clienteParaRemover = c;
+                break;
+            }
+        }
+        
+        if (clienteParaRemover != null) {
+            clientes.remove(clienteParaRemover);
+            salvarDados(); // salva os dados
+        }
     }
 }

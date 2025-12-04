@@ -6,6 +6,7 @@ import br.com.loja.model.Venda;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ public class VendaService {
         carregarDados();
     }
 
+    //carrega os dados
     private void carregarDados() {
         List<Object> dados = persistencia.carregarArquivo(ARQUIVO);
         for (Object obj : dados) {
@@ -30,26 +32,29 @@ public class VendaService {
         }
     }
 
-    // Registra a venda e Salva
+    //registra a venda e salva no arquivo e gera a fatura
     public void registrarVenda(Venda venda) {
-        // Gera ID
         int novoId = vendas.isEmpty() ? 1 : vendas.get(vendas.size() - 1).getId() + 1;
         venda.setId(novoId);
         
         vendas.add(venda);
         persistencia.salvarArquivo(vendas, ARQUIVO);
         
-        // Gera a fatura TXT automaticamente ao vender
         gerarFaturaTxt(venda);
     }
 
-    // Gera arquivo de texto (Requisito do PDF)
+    // gera a fatura da venda
     private void gerarFaturaTxt(Venda venda) {
         String nomeArquivo = "Fatura_Venda_" + venda.getId() + ".txt";
+
+        //formata a data
+        DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        String dataFormatada = venda.getDataHora().format(formatador);
+
         try (PrintWriter writer = new PrintWriter(new FileWriter(nomeArquivo))) {
             writer.println("=== FATURA BEYCELL ===");
             writer.println("Venda: #" + venda.getId());
-            writer.println("Data: " + venda.getDataHora());
+            writer.println("Data: " + dataFormatada);
             writer.println("Cliente: " + venda.getCliente().getNome());
             writer.println("CPF: " + venda.getCliente().getCpf());
             writer.println("----------------------");
@@ -65,13 +70,14 @@ public class VendaService {
         }
     }
 
+    //lista todas as vendas
     public List<Venda> listarVendas() {
         return vendas;
     }
 
-    // --- MÉTODOS PARA RELATÓRIOS ---
+    // Metodos para a aba de relatorios
 
-    // 1. Total Vendido (R$)
+    // total vendido
     public double getTotalVendido() {
         double total = 0;
         for (Venda v : vendas) {
@@ -80,13 +86,13 @@ public class VendaService {
         return total;
     }
 
-    // 2. Ticket Médio
+    // valor medio das compras
     public double getTicketMedio() {
         if (vendas.isEmpty()) return 0.0;
         return getTotalVendido() / vendas.size();
     }
 
-    // 3. Produto Mais Vendido (Lógica simples por contagem)
+    // produtos mais vendidos
     public String getProdutoMaisVendido() {
         Map<String, Integer> contagem = new HashMap<>();
         
@@ -108,7 +114,7 @@ public class VendaService {
         return maisVendido + " (" + max + " un.)";
     }
 
-    // 4. Melhor Cliente (Quem gastou mais)
+    // cliente que gastou mais
     public String getMelhorCliente() {
         Map<String, Double> gastos = new HashMap<>();
 

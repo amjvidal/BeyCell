@@ -1,118 +1,139 @@
 @startuml
 
-' ======= PACKAGES =======
-package model {
-    class Produto {
-        - id : int
-        - nome : String
-        - marca : String
-        - modelo : String
-        - preco : double
-        - estoqueAtual : int
-        - estoqueMinimo : int
-        + getId() : int
-        + getNome() : String
-        + getMarca() : String
-        + getModelo() : String
-        + getPreco() : double
-        + getEstoqueAtual() : int
-        + getEstoqueMinimo() : int
-        + setEstoqueAtual(int)
+title Diagrama de Classes - Projeto BeyCell (Final)
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' --- PACOTE MODEL ---
+package "br.com.loja.model" {
+    class Celular implements Serializable {
+        - int id
+        - String marca
+        - String modelo
+        - double preco
+        - int ram
+        - int armazenamento
+        - String cor
+        - int quantidadeEstoque
+        - int estoqueMinimo
+        + Celular()
+        + toString() : String
     }
 
-    class Cliente {
-        - id : int
-        - nome : String
-        - email : String
-        - telefone : String
-        + getters/setters
+    class Cliente implements Serializable {
+        - String cpf
+        - String nome
+        - String telefone
+        - String endereco
+        + Cliente()
+        + toString() : String
     }
 
-    class ItemVenda {
-        - produto : Produto
-        - quantidade : int
-        - subtotal : double
-        + getProduto() : Produto
-        + getQuantidade() : int
-        + getSubtotal() : double
-        + getPrecoUnitario() : double
-    }
-
-    class Venda {
-        - id : int
-        - cliente : Cliente
-        - itens : List<ItemVenda>
-        - data : LocalDateTime
-        - total : double
-        + adicionarItem(ItemVenda)
-        + calcularTotal()
-        + getters
+    class Venda implements Serializable {
+        - int id
+        - LocalDateTime dataHora
+        - double valorTotal
+        + Venda()
+        + toString() : String
     }
 }
 
-package repository {
-    class GenericRepository<T> {
-        - String filePath
-        + salvar(List<T>)
-        + carregar() : List<T>
-        + inserir(T)
-        + atualizar(T)
-        + deletar(int id)
-        + listar() : List<T>
-    }
-
-    class ProdutoRepository
-    class ClienteRepository
-    class VendaRepository
-}
-
-package controller {
-    class ProdutoController {
-        - ProdutoRepository repo
-        + cadastrarProduto(Produto)
-        + atualizarProduto(Produto)
-        + removerProduto(int)
-        + listarProdutos() : List<Produto>
-    }
-
-    class ClienteController {
-        - ClienteRepository repo
-        + cadastrarCliente(Cliente)
-        + atualizarCliente(Cliente)
-        + removerCliente(int)
-        + listarClientes() : List<Cliente>
-    }
-
-    class VendaController {
-        - VendaRepository repo
-        - ProdutoRepository produtoRepo
-        + registrarVenda(Venda)
-        + listarVendas() : List<Venda>
-        + verificarEstoque(Produto)
+' --- PACOTE DAO ---
+package "br.com.loja.dao" {
+    class Persistencia {
+        + salvarArquivo(List<?>, String) : void
+        + carregarArquivo(String) : List<Object>
     }
 }
 
-package service {
-    class Fatura {
-        + gerarFatura(Venda)
+' --- PACOTE SERVICE ---
+package "br.com.loja.service" {
+    class CelularService {
+        - List<Celular> celulares
+        + cadastrar(Celular) : void
+        + remover(int) : void
+        + adicionarEstoque(int, int) : void
+        + baixarEstoque(int) : void
+        + buscarEstoqueCritico() : List<Celular>
+    }
+
+    class ClienteService {
+        - List<Cliente> clientes
+        + cadastrar(Cliente) : void
+        + remover(String) : void
+        + listarTodos() : List<Cliente>
+    }
+
+    class VendaService {
+        - List<Venda> vendas
+        + registrarVenda(Venda) : void
+        - gerarFaturaTxt(Venda) : void
+        + getTotalVendido() : double
+        + getTicketMedio() : double
+        + getProdutoMaisVendido() : String
     }
 }
 
-' ======= RELACIONAMENTOS =======
+' --- PACOTE VIEW ---
+package "br.com.loja.view" {
+    class MenuPrincipal extends JFrame {
+        - CardLayout cardLayout
+        - JPanel mainPanel
+        + main(String[]) : void
+        - criarPainelMenu() : JPanel
+    }
 
-Produto "1" <-- "1..*" ItemVenda : produto
-Venda "1" --> "1..*" ItemVenda : contém
-Venda "1" --> "1" Cliente
+    class TelaCelular extends JPanel {
+        + TelaCelular(ActionListener)
+        - atualizarTabela() : void
+    }
 
-ProdutoRepository --|> GenericRepository
-ClienteRepository --|> GenericRepository
-VendaRepository --|> GenericRepository
+    class TelaCliente extends JPanel {
+        + TelaCliente(ActionListener)
+        - atualizarTabela() : void
+    }
 
-ProdutoController --> ProdutoRepository
-ClienteController --> ClienteRepository
-VendaController --> VendaRepository
-VendaController --> ProdutoRepository
+    class TelaVenda extends JPanel {
+        - List<Celular> carrinho
+        - double totalVenda
+        + TelaVenda(ActionListener)
+        + atualizarDados() : void
+    }
 
-Fatura --> Venda
+    class TelaRelatorios extends JPanel {
+        + TelaRelatorios(ActionListener)
+        + carregarRelatorio() : void
+    }
+}
+
+' --- RELACIONAMENTOS ---
+
+' Models dentro de Venda
+Venda "1" *-- "1" Cliente : possui >
+Venda "1" o-- "*" Celular : contem itens >
+
+' Services usam Persistencia
+CelularService ..> Persistencia : usa
+ClienteService ..> Persistencia : usa
+VendaService ..> Persistencia : usa
+
+' Services gerenciam Models
+CelularService "1" o-- "*" Celular : lista
+ClienteService "1" o-- "*" Cliente : lista
+VendaService "1" o-- "*" Venda : lista
+
+' View principal contem os Paineis (Composição)
+MenuPrincipal *-- TelaCelular : contem >
+MenuPrincipal *-- TelaCliente : contem >
+MenuPrincipal *-- TelaVenda : contem >
+MenuPrincipal *-- TelaRelatorios : contem >
+
+' Paineis usam os Services
+TelaCelular --> CelularService
+TelaCliente --> ClienteService
+TelaVenda --> VendaService
+TelaVenda --> CelularService
+TelaVenda --> ClienteService
+TelaRelatorios --> VendaService
 
 @enduml

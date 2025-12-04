@@ -1,0 +1,13 @@
+=== FATURA BEYCELL ===
+Venda: #3
+Data: 2025-12-04T14:35:39.731993
+Cliente: Antonio Mario Jesus Vidal Leite
+CPF: 14384276460
+----------------------
+ITENS:
+- Apple Iphone XR : R$ 2000.0
+- Apple Iphone XR : R$ 2000.0
+- Apple Iphone XR : R$ 2000.0
+- Apple Iphone XR : R$ 2000.0
+----------------------
+TOTAL: R$ 8000.0

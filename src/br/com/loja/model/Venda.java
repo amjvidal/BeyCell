@@ -11,23 +11,23 @@ public class Venda implements Serializable {
     private int id;
     private LocalDateTime dataHora;
     private Cliente cliente;
-    private List<Celular> itensVendidos; // Lista de celulares nesta venda
+    private List<Celular> itensVendidos; //lista de celulares na venda
     private double valorTotal;
 
     public Venda() {
-        // Inicializa a lista para não dar erro se adicionar itens depois
+        // inicia a lista pra garantir que nao vai dar erro
         this.itensVendidos = new ArrayList<>();
     }
 
     public Venda(int id, Cliente cliente, List<Celular> itensVendidos, double valorTotal) {
         this.id = id;
-        this.dataHora = LocalDateTime.now(); // Pega a hora atual automaticamente
+        this.dataHora = LocalDateTime.now();//pega data e hora
         this.cliente = cliente;
         this.itensVendidos = itensVendidos;
         this.valorTotal = valorTotal;
     }
 
-    // Getters e Setters
+    //getters e setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -43,6 +43,7 @@ public class Venda implements Serializable {
     public double getValorTotal() { return valorTotal; }
     public void setValorTotal(double valorTotal) { this.valorTotal = valorTotal; }
     
+    //pra sair bonito na view
     @Override
     public String toString() {
         return "Venda #" + id + " - " + cliente.getNome() + " - R$ " + valorTotal;

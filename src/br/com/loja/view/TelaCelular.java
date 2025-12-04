@@ -6,28 +6,37 @@ import br.com.loja.service.CelularService;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.List;
 
-public class TelaCelular extends JFrame {
+public class TelaCelular extends JPanel {
 
     private CelularService service;
     private JTable tabela;
     private DefaultTableModel tableModel;
-
-    // Campos de texto para cadastro
     private JTextField txtMarca, txtModelo, txtPreco, txtRam, txtArmaz, txtCor, txtEstoqueMin;
 
-    public TelaCelular() {
+    //construtor só recebe botao voltar
+    public TelaCelular(ActionListener acaoVoltar) {
         this.service = new CelularService();
-        
-        setTitle("Gerenciar Celulares");
-        setSize(800, 600);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // --- PAINEL DE CADASTRO (TOPO) ---
-        JPanel panelCadastro = new JPanel(new GridLayout(4, 4, 5, 5));
+        //topo da tela
+        JPanel panelTopo = new JPanel(new BorderLayout());
+        JButton btnVoltar = new JButton("<< Voltar");
+        btnVoltar.addActionListener(acaoVoltar); // linka o botão pra açao voltar
+        JLabel lblTitulo = new JLabel("Gerenciar Celulares", SwingConstants.CENTER);
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
         
+        panelTopo.add(btnVoltar, BorderLayout.WEST);
+        panelTopo.add(lblTitulo, BorderLayout.CENTER);
+        add(panelTopo, BorderLayout.NORTH);
+
+        // Centro com formulario e tabela de produtos
+        JPanel panelCentro = new JPanel(new BorderLayout());
+        
+        // formulario pra adicionar celular
+        JPanel panelCadastro = new JPanel(new GridLayout(4, 4, 5, 5));
         txtMarca = new JTextField();
         txtModelo = new JTextField();
         txtPreco = new JTextField();
@@ -46,25 +55,30 @@ public class TelaCelular extends JFrame {
         
         JButton btnSalvar = new JButton("Cadastrar Novo");
         panelCadastro.add(btnSalvar);
+        
+        panelCentro.add(panelCadastro, BorderLayout.NORTH);
 
-        add(panelCadastro, BorderLayout.NORTH);
-
-        // --- TABELA DE LISTAGEM (CENTRO) ---
+        //tabela de produtos
         String[] colunas = {"ID", "Marca", "Modelo", "Preço", "Estoque", "Minimo"};
         tableModel = new DefaultTableModel(colunas, 0);
         tabela = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(tabela);
-        add(scrollPane, BorderLayout.CENTER);
+        panelCentro.add(new JScrollPane(tabela), BorderLayout.CENTER);
+        
+        add(panelCentro, BorderLayout.CENTER);
 
-        // --- PAINEL DE AÇÕES (BAIXO) ---
+        //parte de baixo com os botões
         JPanel panelBotoes = new JPanel();
-        JButton btnAddEstoque = new JButton("Adicionar Estoque ao Selecionado");
+        JButton btnAddEstoque = new JButton("Adicionar Estoque");
+        JButton btnRemover = new JButton("Excluir Celular");
+        btnRemover.setForeground(Color.RED);
+
         panelBotoes.add(btnAddEstoque);
+        panelBotoes.add(btnRemover);
         add(panelBotoes, BorderLayout.SOUTH);
 
-        // --- EVENTOS (CLIQUES) ---
-        
-        // 1. Botão Salvar
+        // Todos os Eventos: 
+
+        // Evento para salvar
         btnSalvar.addActionListener(e -> {
             try {
                 Celular c = new Celular();
@@ -75,48 +89,62 @@ public class TelaCelular extends JFrame {
                 c.setArmazenamento(Integer.parseInt(txtArmaz.getText()));
                 c.setCor(txtCor.getText());
                 c.setEstoqueMinimo(Integer.parseInt(txtEstoqueMin.getText()));
-                c.setQuantidadeEstoque(0); // Começa com 0, adiciona depois
+                c.setQuantidadeEstoque(0); 
 
                 service.cadastrar(c);
                 atualizarTabela();
                 limparCampos();
                 JOptionPane.showMessageDialog(this, "Celular cadastrado!");
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Erro: Verifique se os números estão corretos.");
+                JOptionPane.showMessageDialog(this, "Erro: Verifique os números.");
             }
         });
 
-        // 2. Botão Adicionar Estoque
+
+        // evento para adicionar estoque ao produto
         btnAddEstoque.addActionListener(e -> {
-            int linhaSelecionada = tabela.getSelectedRow();
-            if (linhaSelecionada >= 0) {
-                int id = (int) tabela.getValueAt(linhaSelecionada, 0);
-                String qtdStr = JOptionPane.showInputDialog("Quantos itens deseja adicionar?");
+            int linha = tabela.getSelectedRow();
+            if (linha >= 0) {
+                int id = (int) tabela.getValueAt(linha, 0);
+                String qtdStr = JOptionPane.showInputDialog("Quantidade a adicionar?");
                 if (qtdStr != null) {
-                    int qtd = Integer.parseInt(qtdStr);
-                    service.adicionarEstoque(id, qtd);
+                    try {
+                        service.adicionarEstoque(id, Integer.parseInt(qtdStr));
+                        atualizarTabela();
+                    } catch(Exception ex) { JOptionPane.showMessageDialog(this, "Número inválido"); }
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um celular.");
+            }
+        });
+
+        //evento para remover produto
+        btnRemover.addActionListener(e -> {
+            int linha = tabela.getSelectedRow();
+            if (linha >= 0) {
+                int id = (int) tabela.getValueAt(linha, 0);
+                if (JOptionPane.showConfirmDialog(this, "Confirmar exclusão?", "Excluir", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                    service.remover(id);
                     atualizarTabela();
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Selecione um celular na tabela.");
+                JOptionPane.showMessageDialog(this, "Selecione um celular.");
             }
         });
 
-        atualizarTabela(); // Carrega dados ao abrir
+        atualizarTabela();
     }
 
+    // atualizar tabela ao modificar ela
     private void atualizarTabela() {
-        tableModel.setRowCount(0); // Limpa tabela
+        tableModel.setRowCount(0); 
         List<Celular> lista = service.listarTodos();
         for (Celular c : lista) {
-            Object[] linha = {
-                c.getId(), c.getMarca(), c.getModelo(), 
-                c.getPreco(), c.getQuantidadeEstoque(), c.getEstoqueMinimo()
-            };
-            tableModel.addRow(linha);
+            tableModel.addRow(new Object[]{c.getId(), c.getMarca(), c.getModelo(), c.getPreco(), c.getQuantidadeEstoque(), c.getEstoqueMinimo()});
         }
     }
 
+    //  limpar os campos, usado ao adicionar produtos
     private void limparCampos() {
         txtMarca.setText(""); txtModelo.setText(""); txtPreco.setText("");
         txtRam.setText(""); txtArmaz.setText(""); txtCor.setText(""); txtEstoqueMin.setText("");

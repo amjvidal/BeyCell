@@ -10,10 +10,11 @@ import br.com.loja.service.VendaService;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TelaVenda extends JFrame {
+public class TelaVenda extends JPanel {
 
     private VendaService vendaService;
     private CelularService celularService;
@@ -22,49 +23,46 @@ public class TelaVenda extends JFrame {
     private JComboBox<Cliente> cbClientes;
     private JComboBox<Celular> cbProdutos;
     private DefaultTableModel modelCarrinho;
+    private JTable tabelaCarrinho;
     private JLabel lblTotal;
-    
-    // Lista temporária (carrinho de compras)
     private List<Celular> carrinho; 
     private double totalVenda = 0.0;
 
-    public TelaVenda() {
+    public TelaVenda(ActionListener acaoVoltar) {
         vendaService = new VendaService();
         celularService = new CelularService();
         clienteService = new ClienteService();
         carrinho = new ArrayList<>();
 
-        setTitle("Nova Venda");
-        setSize(800, 600);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // --- TOPO: SELEÇÃO ---
-        JPanel panelTopo = new JPanel(new GridLayout(3, 2, 10, 10));
-        
+        // topo da tela
+        JPanel panelTopoGeral = new JPanel(new BorderLayout());
+        JButton btnVoltar = new JButton("<< Voltar");
+        btnVoltar.addActionListener(acaoVoltar);
+        panelTopoGeral.add(btnVoltar, BorderLayout.NORTH);
+
+        // area pra selecionar cliente e produto
+        JPanel panelSelecao = new JPanel(new GridLayout(3, 2, 10, 10));
         cbClientes = new JComboBox<>();
-        carregarClientes();
-        
         cbProdutos = new JComboBox<>();
-        carregarProdutos();
-
+        
         JButton btnAdicionar = new JButton("Adicionar ao Carrinho (+)");
+        JButton btnRemover = new JButton("Remover Item (-)");
 
-        panelTopo.add(new JLabel("Selecione o Cliente:"));
-        panelTopo.add(cbClientes);
-        panelTopo.add(new JLabel("Selecione o Produto:"));
-        panelTopo.add(cbProdutos);
-        panelTopo.add(new JLabel("")); // Espaço vazio
-        panelTopo.add(btnAdicionar);
+        panelSelecao.add(new JLabel("Selecione o Cliente:")); panelSelecao.add(cbClientes);
+        panelSelecao.add(new JLabel("Selecione o Produto:")); panelSelecao.add(cbProdutos);
+        panelSelecao.add(btnRemover); panelSelecao.add(btnAdicionar);
 
-        add(panelTopo, BorderLayout.NORTH);
+        panelTopoGeral.add(panelSelecao, BorderLayout.CENTER);
+        add(panelTopoGeral, BorderLayout.NORTH);
 
-        // --- CENTRO: CARRINHO ---
+        // tabela do carrinho
         modelCarrinho = new DefaultTableModel(new String[]{"Produto", "Preço"}, 0);
-        JTable tabelaCarrinho = new JTable(modelCarrinho);
+        tabelaCarrinho = new JTable(modelCarrinho);
         add(new JScrollPane(tabelaCarrinho), BorderLayout.CENTER);
 
-        // --- BAIXO: TOTAL E FINALIZAR ---
+        // valort total e botao de finalizar compra na parte de baixo
         JPanel panelBaixo = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         lblTotal = new JLabel("Total: R$ 0.00");
         lblTotal.setFont(new Font("Arial", Font.BOLD, 20));
@@ -74,62 +72,74 @@ public class TelaVenda extends JFrame {
         panelBaixo.add(btnFinalizar);
         add(panelBaixo, BorderLayout.SOUTH);
 
-        // --- AÇÕES ---
-        
-        // Botão Adicionar
+        // todos os eventos
+
+        // adicionar ao carrinho
         btnAdicionar.addActionListener(e -> {
             Celular produto = (Celular) cbProdutos.getSelectedItem();
             if (produto != null) {
-                // Verifica estoque antes de adicionar
                 if (produto.getQuantidadeEstoque() > 0) {
                     carrinho.add(produto);
                     modelCarrinho.addRow(new Object[]{produto.getMarca() + " " + produto.getModelo(), produto.getPreco()});
                     totalVenda += produto.getPreco();
-                    lblTotal.setText("Total: R$ " + totalVenda);
+                    lblTotal.setText("Total: R$ " + String.format("%.2f", totalVenda));
                 } else {
-                    JOptionPane.showMessageDialog(this, "Produto sem estoque!");
+                    JOptionPane.showMessageDialog(this, "Sem estoque!");
                 }
             }
         });
 
-        // Botão Finalizar
+
+        //remover do carrinho
+        btnRemover.addActionListener(e -> {
+            int linha = tabelaCarrinho.getSelectedRow();
+            if (linha >= 0) {
+                Celular item = carrinho.get(linha);
+                totalVenda -= item.getPreco();
+                carrinho.remove(linha);
+                modelCarrinho.removeRow(linha);
+                lblTotal.setText("Total: R$ " + String.format("%.2f", Math.max(0, totalVenda)));
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um item.");
+            }
+        });
+
+        // finalizar compra
         btnFinalizar.addActionListener(e -> {
             if (carrinho.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Carrinho vazio!");
                 return;
             }
             Cliente cliente = (Cliente) cbClientes.getSelectedItem();
-            
-            // Cria a venda
             Venda venda = new Venda(0, cliente, new ArrayList<>(carrinho), totalVenda);
             vendaService.registrarVenda(venda);
 
-            // Baixa o estoque de cada item
             for (Celular c : carrinho) {
                 celularService.baixarEstoque(c.getId());
-                // Verifica se ficou abaixo do mínimo (Alerta do PDF) [cite: 35]
+                // Verifica estoque mínimo...
                 Celular atualizado = null;
                 for(Celular busca : celularService.listarTodos()) { if(busca.getId() == c.getId()) atualizado = busca; }
-                
                 if(atualizado != null && atualizado.getQuantidadeEstoque() < atualizado.getEstoqueMinimo()) {
-                    JOptionPane.showMessageDialog(this, "ALERTA: O estoque de " + atualizado.getModelo() + " está abaixo do mínimo!");
+                    JOptionPane.showMessageDialog(this, "ALERTA: Estoque baixo para " + atualizado.getModelo());
                 }
             }
 
-            JOptionPane.showMessageDialog(this, "Venda Realizada! Fatura gerada na pasta do projeto.");
-            dispose(); // Fecha a janela
+            JOptionPane.showMessageDialog(this, "Venda Realizada!");
+            // Limpar tela
+            carrinho.clear();
+            modelCarrinho.setRowCount(0);
+            totalVenda = 0;
+            lblTotal.setText("Total: R$ 0.00");
         });
+        
+        atualizarDados();
     }
 
-    private void carregarClientes() {
-        for (Cliente c : clienteService.listarTodos()) {
-            cbClientes.addItem(c);
-        }
-    }
-
-    private void carregarProdutos() {
-        for (Celular c : celularService.listarTodos()) {
-            cbProdutos.addItem(c);
-        }
+    // metodo usado no menu principal pra carregar combos
+    public void atualizarDados() {
+        cbClientes.removeAllItems();
+        cbProdutos.removeAllItems();
+        for (Cliente c : clienteService.listarTodos()) cbClientes.addItem(c);
+        for (Celular c : celularService.listarTodos()) cbProdutos.addItem(c);
     }
 }

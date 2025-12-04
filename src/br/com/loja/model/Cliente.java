@@ -3,15 +3,15 @@ package br.com.loja.model;
 import java.io.Serializable;
 
 public class Cliente implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+    private static final long serialVersionUID = 1L; //id de serialização
+    //atributos
     private String cpf;
     private String nome;
     private String telefone;
     private String endereco;
 
     public Cliente() {}
-
+    //construtor
     public Cliente(String cpf, String nome, String telefone, String endereco) {
         this.cpf = cpf;
         this.nome = nome;
@@ -19,7 +19,7 @@ public class Cliente implements Serializable {
         this.endereco = endereco;
     }
 
-    // Getters e Setters
+    // getters e setters
     public String getCpf() { return cpf; }
     public void setCpf(String cpf) { this.cpf = cpf; }
 
@@ -32,6 +32,7 @@ public class Cliente implements Serializable {
     public String getEndereco() { return endereco; }
     public void setEndereco(String endereco) { this.endereco = endereco; }
 
+    // para saida bonita na view
     @Override
     public String toString() {
         return nome + " (CPF: " + cpf + ")";
