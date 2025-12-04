@@ -10,7 +10,7 @@ public class MenuPrincipal extends JFrame {
 
     public MenuPrincipal() {
         setTitle("BeyCell - Sistema Integrado");
-        setSize(850, 650);
+        setSize(850, 800); // Aumentei a altura para caber a logo triplicada
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -40,12 +40,39 @@ public class MenuPrincipal extends JFrame {
     }
 
     private JPanel criarPainelMenu() {
-        JPanel panel = new JPanel(new GridLayout(5, 1, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(50, 100, 50, 100)); // Margens
+        // Mudei o Layout para BorderLayout para a logo não deformar os botões
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 100, 50, 100)); 
+
+        // --- 1. PAINEL DO TOPO (LOGO + TÍTULO) ---
+        JPanel panelTopo = new JPanel();
+        panelTopo.setLayout(new BoxLayout(panelTopo, BoxLayout.Y_AXIS)); // Empilha verticalmente
+
+        JLabel lblLogo = new JLabel();
+        lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT); // Centraliza a imagem
+        
+        try {
+            ImageIcon imagemOriginal = new ImageIcon(getClass().getResource("logo.png"));
+            // Redimensiona para 360x360 pixels (TRIPLO do anterior)
+            Image imagemRedimensionada = imagemOriginal.getImage().getScaledInstance(360, 360, Image.SCALE_SMOOTH);
+            lblLogo.setIcon(new ImageIcon(imagemRedimensionada));
+        } catch (Exception e) {
+            lblLogo.setText("[BeyCell Logo]");
+        }
 
         JLabel lblTitulo = new JLabel("BEYCELL", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 30));
+        lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT); // Centraliza o texto
         
+        // Adiciona um espaçamento entre a logo e o título
+        panelTopo.add(lblLogo);
+        panelTopo.add(Box.createRigidArea(new Dimension(0, 20))); 
+        panelTopo.add(lblTitulo);
+        panelTopo.add(Box.createRigidArea(new Dimension(0, 30))); // Espaço antes dos botões
+
+        // --- 2. PAINEL DOS BOTÕES ---
+        JPanel panelBotoes = new JPanel(new GridLayout(4, 1, 10, 10)); // Grade só para os botões
+
         JButton btnCelulares = new JButton("Gerenciar Celulares");
         JButton btnClientes = new JButton("Gerenciar Clientes");
         JButton btnVendas = new JButton("Nova Venda");
@@ -56,7 +83,6 @@ public class MenuPrincipal extends JFrame {
         btnClientes.addActionListener(e -> cardLayout.show(mainPanel, "CLIENTE"));
         btnVendas.addActionListener(e -> {
             cardLayout.show(mainPanel, "VENDA");
-            // Truque: Força a atualização dos combos box quando abre a tela de venda
             Component[] comps = mainPanel.getComponents();
             for(Component c : comps) {
                 if(c instanceof TelaVenda) ((TelaVenda)c).atualizarDados(); 
@@ -64,18 +90,20 @@ public class MenuPrincipal extends JFrame {
         });
         btnRelatorios.addActionListener(e -> {
             cardLayout.show(mainPanel, "RELATORIOS");
-             // Atualiza relatórios ao abrir
             Component[] comps = mainPanel.getComponents();
             for(Component c : comps) {
                 if(c instanceof TelaRelatorios) ((TelaRelatorios)c).carregarRelatorio(); 
             }
         });
 
-        panel.add(lblTitulo);
-        panel.add(btnCelulares);
-        panel.add(btnClientes);
-        panel.add(btnVendas);
-        panel.add(btnRelatorios);
+        panelBotoes.add(btnCelulares);
+        panelBotoes.add(btnClientes);
+        panelBotoes.add(btnVendas);
+        panelBotoes.add(btnRelatorios);
+
+        // Junta tudo no painel principal
+        panel.add(panelTopo, BorderLayout.NORTH);
+        panel.add(panelBotoes, BorderLayout.CENTER);
 
         return panel;
     }
