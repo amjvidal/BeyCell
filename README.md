@@ -102,3 +102,6 @@ O arquivo está escrito em linguagem PlantUML. Para visualizá-lo graficamente d
 * Pressione Alt + D.
 
 O diagrama aparecerá numa janela ao lado, mostrando todas as classes, atributos, métodos e relacionamentos do sistema BeyCell.
+
+<img width="639" height="696" alt="image" src="https://github.com/user-attachments/assets/0bb60b7f-bfeb-47ba-a865-4f43c6e1edde" />
+
